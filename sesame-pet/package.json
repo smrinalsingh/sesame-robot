@@ -1,0 +1,23 @@
+{
+  "name": "sesame-pet",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Voice-driven pet behaviors for the Sesame robot, plus a browser simulator",
+  "type": "module",
+  "license": "Apache-2.0",
+  "scripts": {
+    "start": "node server/main.js",
+    "sim": "node server/main.js --robot sim",
+    "test": "node --test test/*.test.js"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "dependencies": {
+    "three": "^0.187.0",
+    "ws": "^8.22.1"
+  },
+  "devDependencies": {
+    "playwright-core": "^1.64.1"
+  }
+}

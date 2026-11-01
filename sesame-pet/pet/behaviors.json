@@ -1,0 +1,31 @@
+{
+  "_help": "What the pet can do when you talk to it. Keys are behavior names the AI picks from. Fields: when = hint for the AI, command = a firmware move (see the Lab page), face = an OLED face, sound = a sound from sounds.json, seconds = how long to walk (walking moves only), hold = ms to keep a face-only reaction. Firmware moves not listed here are added automatically. Moves already make their own sounds (playSound calls in firmware/movement-sequences.h); a sound here plays as the behavior starts.",
+  "behaviors": {
+    "greet": { "when": "hello, hi, good morning, welcome back, bye, see you", "command": "wave" },
+    "come_here": { "when": "come here, come to me, walk, go forward", "command": "forward", "seconds": 3 },
+    "back_off": { "when": "back up, go back, move away", "command": "backward", "seconds": 2 },
+    "turn_left": { "when": "turn left, look left", "command": "left", "seconds": 2 },
+    "turn_right": { "when": "turn right, look right, turn around", "command": "right", "seconds": 2 },
+    "stop": { "when": "stop, freeze, wait, no, enough, stay", "command": "stop", "sound": "squeak" },
+    "dance": { "when": "dance, music, party, celebrate", "command": "dance" },
+    "loved": { "when": "affection or praise: good boy, good job, I love you, you're cute, pat", "command": "cute" },
+    "excited": { "when": "treats, play time, good news, are you ready", "face": "excited", "sound": "chitter", "hold": 2000 },
+    "sad": { "when": "scolded, bad news, someone is sad, I'm leaving", "face": "sad", "sound": "whimper", "hold": 2500 },
+    "grumpy": { "when": "insulted, teased, told off rudely, bad bot", "face": "angry", "sound": "hiss", "hold": 2000 },
+    "startled": { "when": "sudden shout, boo, surprise", "face": "surprised", "sound": "squeak", "hold": 1500 },
+    "think": { "when": "asked to wait, think, or a riddle", "face": "thinking", "sound": "huh", "hold": 2000 },
+    "confused": { "when": "talked to, but the request matches nothing it can do (facts, chores, questions)", "command": "shrug" },
+    "sleep": { "when": "good night, go to sleep, nap, rest, lie down", "command": "rest" },
+    "wake_up": { "when": "wake up, get up, stand up", "command": "stand", "sound": "trill" },
+    "play_dead": { "when": "play dead, bang, you're dead", "command": "dead" },
+    "show_off": { "when": "do a trick, workout, exercise, pushups, show me your muscles", "command": "pushup" },
+    "bow": { "when": "take a bow, thank you, applause, well done", "command": "bow" },
+    "point": { "when": "where is it, show me, look over there", "command": "point" },
+    "swim": { "when": "swim, water, splash", "command": "swim" },
+    "wiggle": { "when": "wiggle, worm, be silly", "command": "worm" },
+    "shake": { "when": "shake, shake it off, shake hands", "command": "shake" },
+    "crab": { "when": "crab, sideways, pinch", "command": "crab" },
+    "spooky": { "when": "be weird, be creepy, spooky, freak out", "command": "freaky" },
+    "ignore": { "when": "speech not addressed to the pet: background talk, TV, people talking to each other, silence or noise" }
+  }
+}
