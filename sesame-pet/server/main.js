@@ -34,7 +34,7 @@ const say = (...a) => console.log(`[${stamp()}]`, ...a);
 
 // ---- firmware: the single source of truth for moves, faces and timing
 if (!existsSync(FIRMWARE_DIR)) {
-  console.error(`No firmware at ${FIRMWARE_DIR}.\nClone sesame-robot next to this repo (or set SESAME_ROBOT_DIR in .env) and check out the "pet" branch.`);
+  console.error(`No firmware at ${FIRMWARE_DIR}.\nRun this from sesame-robot/sesame-pet on the "pet" branch (or set SESAME_ROBOT_DIR in .env).`);
   process.exit(1);
 }
 let fw;

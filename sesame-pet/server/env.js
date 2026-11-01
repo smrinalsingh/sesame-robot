@@ -5,11 +5,11 @@ import { dirname, join, resolve } from 'node:path';
 
 export const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 
-// The robot's own repo (your clone of sesame-robot, on the `pet` branch) is the
-// single source of truth for firmware and printed parts. Override with
-// SESAME_ROBOT_DIR in .env if it lives somewhere else.
+// This app lives inside the sesame-robot repo (`pet` branch), so the firmware
+// you flash and the printed parts are one folder up: the single source of
+// truth. SESAME_ROBOT_DIR in .env can point somewhere else.
 export function robotPaths(env = {}) {
-  const repo = resolve(ROOT, env.SESAME_ROBOT_DIR || process.env.SESAME_ROBOT_DIR || '../sesame-robot');
+  const repo = resolve(ROOT, env.SESAME_ROBOT_DIR || process.env.SESAME_ROBOT_DIR || '..');
   return { repo, firmware: join(repo, 'firmware'), stl: join(repo, 'hardware/printing/stl') };
 }
 

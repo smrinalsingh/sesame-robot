@@ -11,15 +11,16 @@ phone (mic, speaker) ──wss──► hub (laptop / bolthub-server) ──► 
 
 ## Setup
 
-The firmware and the printed parts live in your clone of `sesame-robot`, on the `pet` branch, next to this repo:
+This folder lives on the `pet` branch of [smrinalsingh/sesame-robot](https://github.com/smrinalsingh/sesame-robot), a fork of Dorian's repo:
 
 ```
-codebase/
-  sesame-robot/   <- firmware you flash + STLs (branch: pet)
-  sesame-pet/     <- this repo: hub, simulator, phone page, pet personality
+sesame-robot/        <- branch: pet
+  firmware/          <- what you flash (+ our sound hook); the simulator runs this
+  hardware/          <- STLs; the 3D view uses these
+  sesame-pet/        <- this app: hub, simulator, phone page, pet personality
 ```
 
-(Set `SESAME_ROBOT_DIR` in `.env` if it lives elsewhere.) Pull Dorian's updates with `git -C ../sesame-robot pull origin main` while on `pet` — a normal git merge.
+Get Dorian's updates with `git pull origin main` (on `pet`); back up with `git push` (to the fork).
 
 ## Run
 
