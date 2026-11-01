@@ -9,11 +9,13 @@ import { performance } from 'node:perf_hooks';
 const ABORT = Symbol('reboot');
 const FACE_ANIM_LOOP = 0;
 const FACE_ANIM_ONCE = 1;
-const sleepMs = (ms) => new Promise((r) => setTimeout(r, Math.max(0, ms)));
+const sleep = (ms) => new Promise((r) => setTimeout(r, Math.max(0, ms)));
 
 export class Emulator extends EventEmitter {
-  constructor(fw) {
+  // opts.speed > 1 runs firmware time faster (tests, fast-forward).
+  constructor(fw, opts = {}) {
     super();
+    this.speed = opts.speed ?? 1;
     this.gen = 0;
     this.servos = new Array(8).fill(null); // null = never written (servo limp)
     this.lastServoT = new Array(8).fill(0);
@@ -41,13 +43,17 @@ export class Emulator extends EventEmitter {
     this.emit('boot', { gen: this.gen });
   }
 
-  millis() { return Math.floor(performance.now() - this.boot); }
+  now() { return (performance.now() - this.boot) * this.speed; }
+
+  millis() { return Math.floor(this.now()); }
+
+  sleep(ms) { return sleep(Math.max(0, ms) / this.speed); }
 
   makeHal(gen) {
     const self = this;
     const G = () => self.G;
     const check = () => { if (gen !== self.gen) throw ABORT; };
-    const delayWithFace = async (ms) => { check(); await sleepMs(Number(ms)); check(); };
+    const delayWithFace = async (ms) => { check(); await self.sleep(Number(ms)); check(); };
     const serialLine = { buf: '' };
     const Serial = {
       print: (x) => { serialLine.buf += String(x); },
@@ -66,32 +72,32 @@ export class Emulator extends EventEmitter {
       },
       // --- mirrors pressingCheck()
       pressingCheck: async (cmd, ms) => {
-        const start = performance.now();
-        while (performance.now() - start < ms) {
+        const start = self.now();
+        while (self.now() - start < ms) {
           check();
           if (G().currentCommand !== cmd) {
             await self.mod.runStandPose(1);
             return false;
           }
-          await sleepMs(Math.min(5, ms - (performance.now() - start)));
+          await self.sleep(Math.min(5, ms - (self.now() - start)));
         }
         return true;
       },
       delayWithFace,
       delay: delayWithFace,
-      __yield: async () => { check(); await sleepMs(0); },
+      __yield: async () => { check(); await sleep(0); },
       setFace: (n) => self.setFace(String(n)),
       setFaceMode: (m) => self.setFaceMode(m),
       setFaceWithMode: (n, m) => { self.setFaceMode(m); self.setFace(String(n)); },
       enterIdle: () => self.enterIdle(),
       exitIdle: () => { self.idle.active = false; self.idle.blinkActive = false; },
-      playSound: (name) => { self.emit('serial', `SOUND ${name}`); self.emit('sound', { name: String(name) }); },
+      playSound: (name) => self.playSound(name),
       recordInput: () => {},
       Serial,
       F: (x) => x,
       String: (x) => String(x),
       millis: () => self.millis(),
-      micros: () => Math.floor((performance.now() - self.boot) * 1000),
+      micros: () => Math.floor(self.now() * 1000),
       random: (a, b) => (b === undefined ? Math.floor(Math.random() * a) : a + Math.floor(Math.random() * (b - a))),
       constrain: (x, a, b) => Math.min(b, Math.max(a, x)),
       min: Math.min,
@@ -102,9 +108,15 @@ export class Emulator extends EventEmitter {
     return hal;
   }
 
+  // --- mirrors playSound() (sesame-pet addition to the firmware)
+  playSound(name) {
+    this.emit('serial', `SOUND ${name}`);
+    this.emit('sound', { name: String(name) });
+  }
+
   writeServo(ch, angle) {
     this.servos[ch] = angle;
-    this.emit('servo', { ch, angle, t: Date.now() });
+    this.emit('servo', { ch, angle, t: this.millis() });
   }
 
   // --- mirrors setFace(): unknown names fall back to "default"; a face with
@@ -207,7 +219,7 @@ export class Emulator extends EventEmitter {
         }
         this.emit('idle', { command: cmd });
       }
-      await sleepMs(5);
+      await this.sleep(5);
     }
   }
 

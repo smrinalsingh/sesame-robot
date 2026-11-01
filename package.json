@@ -8,7 +8,7 @@
   "scripts": {
     "start": "node server/main.js",
     "sim": "node server/main.js --robot sim",
-    "test": "node --test test/"
+    "test": "node --test test/*.test.js"
   },
   "engines": {
     "node": ">=20"
@@ -16,5 +16,8 @@
   "dependencies": {
     "three": "^0.187.0",
     "ws": "^8.22.1"
+  },
+  "devDependencies": {
+    "playwright-core": "^1.64.1"
   }
 }

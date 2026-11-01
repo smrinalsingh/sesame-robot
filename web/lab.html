@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Sesame Lab</title>
+  <link rel="icon" href="data:,">
+  <link rel="stylesheet" href="/css/app.css">
+  <script type="importmap">
+    { "imports": { "three": "/vendor/three/build/three.module.js", "three/addons/": "/vendor/three/examples/jsm/" } }
+  </script>
+</head>
+<body>
+  <main class="lab">
+    <header>
+      <h1>Sesame Lab</h1>
+      <span class="status"><span class="dot" id="link"></span><span id="mode">connecting…</span></span>
+      <span class="status" id="fwStatus"></span>
+      <span class="status" id="callStatus"></span>
+      <span class="spacer"></span>
+      <label class="status"><input type="checkbox" id="soundOn" checked> sounds here</label>
+    </header>
+    <section class="stage">
+      <div class="view" id="view">
+        <div class="hud">
+          <div class="big" id="cmd">idle</div>
+          <div class="muted" id="faceName"></div>
+        </div>
+        <canvas class="oled" id="oled" width="128" height="64"></canvas>
+      </div>
+      <form class="talk" id="talk">
+        <input id="say" placeholder="Say something to Sesame (typed, goes through the same AI as the phone)…" autocomplete="off">
+        <button class="primary">Send</button>
+      </form>
+    </section>
+    <aside class="panel">
+      <nav class="tabs" id="tabs">
+        <button data-tab="moves" class="on">Moves</button>
+        <button data-tab="behaviors">Behaviors</button>
+        <button data-tab="faces">Faces</button>
+        <button data-tab="sounds">Sounds</button>
+        <button data-tab="servos">Servos</button>
+        <button data-tab="log">Log</button>
+      </nav>
+      <div class="tab on" id="tab-moves">
+        <div id="fwNotice"></div>
+        <h3>Firmware moves <span class="muted" id="moveCount"></span></h3>
+        <p class="muted" style="margin:0 0 8px;font-size:13px">Read live from <code>sesame-robot/firmware/</code> (pet branch). Add a move there and it shows up here.</p>
+        <div class="grid-btns" id="moves"></div>
+        <h3>Walking</h3>
+        <div class="row"><button id="stopBtn">■ Stop</button><span class="muted" style="font-size:13px">Walking runs until stopped, like on the robot.</span></div>
+      </div>
+      <div class="tab" id="tab-behaviors">
+        <div id="warnings"></div>
+        <p class="muted" style="margin:0 0 8px;font-size:13px">What the AI can pick. Edit <code>pet/behaviors.json</code>; changes apply live, even mid-call.</p>
+        <div id="behaviors"></div>
+      </div>
+      <div class="tab" id="tab-faces">
+        <p class="muted" style="margin:0 0 8px;font-size:13px">From <code>firmware/face-bitmaps.h</code>. Click to show on the robot.</p>
+        <div class="faces" id="faces"></div>
+      </div>
+      <div class="tab" id="tab-sounds">
+        <p class="muted" style="margin:0 0 8px;font-size:13px">Click to play. Edit the recipe, hit Play to hear it, Save to write <code>pet/sounds.json</code>. Tags show which firmware moves use a sound.</p>
+        <div id="soundList"></div>
+        <h3>Recipe <span id="soundName"></span></h3>
+        <textarea id="recipe" rows="14" spellcheck="false"></textarea>
+        <div class="row" style="margin-top:8px">
+          <button id="playRecipe" class="primary">▶ Play</button>
+          <button id="saveRecipe">Save</button>
+          <button id="newSound">New sound</button>
+          <button id="wav">Download WAV</button>
+          <span class="muted" id="recipeMsg" style="font-size:13px"></span>
+        </div>
+      </div>
+      <div class="tab" id="tab-servos">
+        <p class="muted" style="margin:0 0 8px;font-size:13px">Drive single servos (same as the robot's <code>/cmd?motor=</code>). Useful for checking 90° centering before fitting horns.</p>
+        <div id="servos"></div>
+        <div class="row" style="margin-top:8px"><button id="all90">All to 90°</button></div>
+      </div>
+      <div class="tab" id="tab-log">
+        <div class="row" style="margin-bottom:8px"><button id="clearLog">Clear</button><label><input type="checkbox" id="showSerial" checked> firmware serial</label></div>
+        <div class="log" id="log"></div>
+      </div>
+    </aside>
+  </main>
+  <script type="module" src="/js/lab.js"></script>
+</body>
+</html>

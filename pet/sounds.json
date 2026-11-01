@@ -1,0 +1,98 @@
+{
+  "_help": "Creature sounds, made by a tiny synthesizer (web/js/synth.js) so they can be tweaked live in the Lab and later rendered to WAV for a speaker on the robot. A sound is a list of layers. Layer fields: wave (sine|triangle|square|sawtooth|noise), at (start, s), dur (s), freq [[fraction of dur, Hz], ...], amp [[fraction, 0..1], ...], vol, vibrato {rate Hz, depth Hz}, tremolo {rate Hz, depth 0..1}, filter {type lowpass|highpass|bandpass, freq Hz or [[fraction, Hz]...], q}, repeat {count, every s, pitchStep, jitter}. Sound fields: gain, variation (random pitch spread per play, 0.05 = ±5%).",
+  "sounds": {
+    "chirp": {
+      "gain": 0.7, "variation": 0.06,
+      "layers": [
+        { "wave": "sine", "dur": 0.11, "freq": [[0, 2200], [0.55, 3600], [1, 3000]], "amp": [[0, 0], [0.12, 1], [0.6, 0.7], [1, 0]], "vol": 0.8 },
+        { "wave": "triangle", "dur": 0.11, "freq": [[0, 4400], [0.55, 7200], [1, 6000]], "amp": [[0, 0], [0.12, 1], [1, 0]], "vol": 0.12 }
+      ]
+    },
+    "trill": {
+      "gain": 0.65, "variation": 0.05,
+      "layers": [
+        { "wave": "sine", "dur": 0.38, "freq": [[0, 2300], [0.5, 2900], [1, 3200]], "amp": [[0, 0], [0.1, 1], [0.8, 0.8], [1, 0]], "vibrato": { "rate": 26, "depth": 420 }, "vol": 0.8 }
+      ]
+    },
+    "chitter": {
+      "gain": 0.6, "variation": 0.08,
+      "layers": [
+        { "wave": "square", "dur": 0.02, "freq": [[0, 3400], [1, 2500]], "amp": [[0, 0], [0.1, 1], [1, 0]], "filter": { "type": "bandpass", "freq": 3000, "q": 2.5 }, "vol": 0.7,
+          "repeat": { "count": 7, "every": 0.045, "pitchStep": 1.02, "jitter": 0.12 } }
+      ]
+    },
+    "wheee": {
+      "gain": 0.6, "variation": 0.04,
+      "layers": [
+        { "wave": "sine", "dur": 0.62, "freq": [[0, 900], [0.6, 2700], [1, 3500]], "amp": [[0, 0], [0.15, 1], [0.85, 0.9], [1, 0]], "vibrato": { "rate": 9, "depth": 90 }, "vol": 0.8 },
+        { "wave": "triangle", "dur": 0.62, "freq": [[0, 1800], [0.6, 5400], [1, 7000]], "amp": [[0, 0], [0.2, 1], [1, 0]], "vol": 0.1 }
+      ]
+    },
+    "yawn": {
+      "gain": 0.7, "variation": 0.04,
+      "layers": [
+        { "wave": "triangle", "dur": 1.0, "freq": [[0, 650], [0.35, 1050], [1, 420]], "amp": [[0, 0], [0.3, 1], [0.7, 0.8], [1, 0]], "filter": { "type": "lowpass", "freq": 1600, "q": 1 }, "vibrato": { "rate": 5, "depth": 15 }, "vol": 0.7 },
+        { "wave": "noise", "dur": 1.0, "amp": [[0, 0], [0.4, 0.6], [1, 0]], "filter": { "type": "bandpass", "freq": 900, "q": 1.2 }, "vol": 0.18 }
+      ]
+    },
+    "hup": {
+      "gain": 0.7, "variation": 0.07,
+      "layers": [
+        { "wave": "triangle", "dur": 0.1, "freq": [[0, 480], [1, 760]], "amp": [[0, 0], [0.15, 1], [1, 0]], "filter": { "type": "lowpass", "freq": 2000, "q": 2 }, "vol": 0.9 }
+      ]
+    },
+    "boop": {
+      "gain": 0.6, "variation": 0.03,
+      "layers": [
+        { "wave": "sine", "dur": 0.13, "freq": [[0, 900], [1, 640]], "amp": [[0, 0], [0.08, 1], [1, 0]], "vol": 0.9 }
+      ]
+    },
+    "purr": {
+      "gain": 0.8, "variation": 0.05,
+      "layers": [
+        { "wave": "sawtooth", "dur": 1.2, "freq": [[0, 68], [1, 62]], "amp": [[0, 0], [0.15, 1], [0.8, 1], [1, 0]], "tremolo": { "rate": 23, "depth": 0.9 }, "filter": { "type": "lowpass", "freq": 520, "q": 1.5 }, "vol": 0.9 },
+        { "wave": "noise", "dur": 1.2, "amp": [[0, 0], [0.2, 1], [0.8, 1], [1, 0]], "tremolo": { "rate": 23, "depth": 1 }, "filter": { "type": "lowpass", "freq": 350, "q": 1 }, "vol": 0.25 }
+      ]
+    },
+    "hiss": {
+      "gain": 0.6, "variation": 0.05,
+      "layers": [
+        { "wave": "noise", "dur": 0.65, "amp": [[0, 0], [0.08, 1], [0.6, 0.6], [1, 0]], "filter": { "type": "bandpass", "freq": [[0, 3500], [1, 5500]], "q": 0.9 }, "tremolo": { "rate": 11, "depth": 0.35 }, "vol": 0.9 }
+      ]
+    },
+    "click": {
+      "gain": 0.7, "variation": 0.1,
+      "layers": [
+        { "wave": "noise", "dur": 0.014, "amp": [[0, 1], [1, 0]], "filter": { "type": "bandpass", "freq": 4200, "q": 5 }, "vol": 1,
+          "repeat": { "count": 2, "every": 0.06, "pitchStep": 0.9, "jitter": 0.05 } }
+      ]
+    },
+    "squeak": {
+      "gain": 0.6, "variation": 0.06,
+      "layers": [
+        { "wave": "sine", "dur": 0.16, "freq": [[0, 3000], [0.4, 4900], [1, 4200]], "amp": [[0, 0], [0.06, 1], [0.5, 0.8], [1, 0]], "vol": 0.85 },
+        { "wave": "square", "dur": 0.16, "freq": [[0, 3000], [0.4, 4900], [1, 4200]], "amp": [[0, 0], [0.06, 1], [1, 0]], "filter": { "type": "lowpass", "freq": 6000, "q": 0.7 }, "vol": 0.05 }
+      ]
+    },
+    "huh": {
+      "gain": 0.65, "variation": 0.04,
+      "layers": [
+        { "wave": "sine", "at": 0, "dur": 0.13, "freq": [[0, 950], [1, 880]], "amp": [[0, 0], [0.15, 1], [1, 0]], "vol": 0.8 },
+        { "wave": "sine", "at": 0.17, "dur": 0.24, "freq": [[0, 1000], [0.7, 1500], [1, 1650]], "amp": [[0, 0], [0.15, 1], [0.8, 0.8], [1, 0]], "vol": 0.8 }
+      ]
+    },
+    "whimper": {
+      "gain": 0.6, "variation": 0.04,
+      "layers": [
+        { "wave": "sine", "dur": 0.75, "freq": [[0, 1550], [0.3, 1650], [1, 900]], "amp": [[0, 0], [0.2, 1], [0.7, 0.7], [1, 0]], "vibrato": { "rate": 7, "depth": 55 }, "vol": 0.8 },
+        { "wave": "triangle", "dur": 0.75, "freq": [[0, 3100], [0.3, 3300], [1, 1800]], "amp": [[0, 0], [0.2, 1], [1, 0]], "vol": 0.08 }
+      ]
+    },
+    "tick": {
+      "gain": 0.45, "variation": 0.15,
+      "layers": [
+        { "wave": "noise", "dur": 0.012, "amp": [[0, 1], [1, 0]], "filter": { "type": "bandpass", "freq": 2600, "q": 4 }, "vol": 1 }
+      ]
+    }
+  }
+}
