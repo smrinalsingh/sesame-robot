@@ -5,7 +5,8 @@ import { readFile, stat } from 'node:fs/promises';
 import { extname, join, normalize } from 'node:path';
 import { WebSocketServer } from 'ws';
 import { BrainSession } from './pet/brain.js';
-import { saveSounds } from './pet/config.js';
+import { VOICES, VOICE_RANGES, saveSounds, saveVoice } from './pet/config.js';
+import { Speaker } from './pet/speaker.js';
 
 const MIME = {
   '.html': 'text/html; charset=utf-8', '.js': 'text/javascript; charset=utf-8', '.css': 'text/css; charset=utf-8',
@@ -18,6 +19,11 @@ export class Hub {
     this.clients = new Set();
     this.brain = null;
     this.brainOwner = null;
+    this.sayCount = 0;
+    this.speaker = new Speaker({ env: app.env, getConfig: app.getConfig });
+    this.speaker.on('audio', ({ id, audio }) => this.broadcast({ type: 'say.audio', id, audio }));
+    this.speaker.on('done', ({ id, status, transcript }) => this.broadcast({ type: 'say.done', id, status, transcript }));
+    this.speaker.on('log', ({ level, text }) => this.log(level, text));
     this.wss = new WebSocketServer({ noServer: true, maxPayload: 1 << 20 });
     this.wss.on('connection', (ws) => this.onClient(ws));
     this.mounts = [
@@ -57,6 +63,8 @@ export class Hub {
       firmwareSounds: fw.sounds,
       sounds: cfg.sounds,
       behaviors: cfg.behaviors,
+      voice: cfg.voice,
+      voiceOptions: { voices: VOICES, ranges: VOICE_RANGES },
       warnings: cfg.warnings,
       firmwareError: this.app.firmwareError(),
       state: this.app.getEmu().snapshot(),
@@ -124,6 +132,39 @@ export class Hub {
 
   log(level, text) { this.broadcast({ type: 'log', level, text, at: Date.now() }); }
 
+  // A pet noise from the firmware (simulator or real robot). In "words" mode
+  // pages show it but don't play it.
+  sound(name) { this.broadcast({ type: 'sound', name, muted: this.app.getConfig().voice.mode === 'words' }); }
+
+  // Voice settings from the phone/Lab: the noises/words switch and the tuner.
+  setVoice(patch) {
+    const cfg = this.app.getConfig();
+    const before = cfg.voice.mode;
+    cfg.voice = saveVoice(this.app.petDir, patch); // takes effect now; the file reload agrees
+    if (cfg.voice.mode !== 'words' && before === 'words') { this.speaker.stop(); this.broadcast({ type: 'say.stop' }); }
+    if (cfg.voice.mode === 'words' && this.brain && !this.brain.closed) this.speaker.warm();
+    if (cfg.voice.mode !== before) this.broadcast({ type: 'voice.mode', mode: cfg.voice.mode });
+    this.broadcast({ type: 'voice.settings', voice: cfg.voice });
+  }
+
+  // Speak a line in Sesame's voice (whatever the mode): shown and heard everywhere.
+  speak(text) {
+    const id = ++this.sayCount;
+    this.broadcast({ type: 'say', id, text, spoken: true });
+    this.speaker.say(text, id);
+  }
+
+  // One reaction from the AI: show its line, voice it if words are on, and act.
+  petActs(steps, say) {
+    const spoken = this.app.getConfig().voice.mode === 'words' && !!say;
+    if (spoken) this.speak(say);
+    else {
+      this.speaker.stop();
+      if (say) this.broadcast({ type: 'say', id: ++this.sayCount, text: say, spoken: false });
+    }
+    if (steps.length) this.app.executor.act(steps, 'voice');
+  }
+
   async onMessage(ws, m) {
     const { executor, robot } = this.app;
     switch (m.type) {
@@ -145,6 +186,9 @@ export class Hub {
         break;
       }
       case 'act': executor.act(m.steps, 'lab'); break;
+      case 'voice.mode': this.setVoice({ mode: m.mode }); break;
+      case 'voice.set': this.setVoice(m.voice ?? {}); break;
+      case 'voice.try': if (typeof m.text === 'string' && m.text.trim()) this.speak(m.text.trim().slice(0, 200)); break;
       case 'robot': await executor.send(m.body); break;
       case 'servo': await robot.servo(m.index, m.angle); break;
       default: break;
@@ -160,10 +204,8 @@ export class Hub {
     brain.on('speech', (s) => this.broadcast({ type: 'speech', ...s }));
     brain.on('heard', (h) => this.broadcast({ type: 'heard', ...h }));
     brain.on('log', (l) => this.log(l.level, l.text));
-    brain.on('act', ({ steps }) => {
-      if (!steps.length) return;
-      this.app.executor.act(steps, 'voice');
-    });
+    brain.on('act', ({ steps, say }) => this.petActs(steps, say));
+    if (this.app.getConfig().voice.mode === 'words') this.speaker.warm();
     brain.start();
   }
 

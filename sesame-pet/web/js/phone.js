@@ -4,7 +4,7 @@ import { Mic } from './mic.js';
 const $ = (id) => document.getElementById(id);
 const link = new HubLink('phone');
 const view = await attachRobotView(link, { viewEl: $('view'), oledCanvas: $('oled') });
-const { synth } = view;
+const { synth, voice } = view;
 
 let callState = 'idle';
 let mic = null;
@@ -15,9 +15,10 @@ link.on('close', () => { $('link').className = 'dot off'; setCall('idle'); });
 link.on('hello', ({ info }) => {
   $('mode').textContent = info.mode === 'sim' ? '· simulator' : '· robot';
   renderQuick(info);
+  showVoiceMode(info.voice?.mode);
   if (info.firmwareError) banner(`Firmware error, simulator is on the last good version: ${info.firmwareError}`);
 });
-link.on('config', ({ info }) => renderQuick(info));
+link.on('config', ({ info }) => { renderQuick(info); showVoiceMode(info.voice?.mode); });
 link.on('firmware', (m) => { if (m.ok) { banner(''); renderQuick(m.info); } else banner(`Firmware error: ${m.error}`); });
 link.on('robot', ({ online }) => banner(online ? '' : 'Robot is offline. Is it on and on the same WiFi?'));
 
@@ -42,7 +43,7 @@ async function startCall() {
   try {
     mic = new Mic({
       onChunk: (buf) => link.sendBinary(buf),
-      isGated: () => performance.now() < synth.busyUntil + 250,
+      isGated: () => performance.now() < Math.max(synth.busyUntil, voice.busyUntil) + 250, // don't hear itself
       onLevel: (lvl) => { $('ring').style.transform = `scale(${1 + Math.min(0.25, lvl * 0.8)})`; },
     });
     await mic.start();
@@ -73,7 +74,13 @@ link.on('call', ({ state, detail, audio }) => {
 });
 
 // ---- what Sesame heard and is doing
-link.on('speech', ({ state }) => { if (state === 'start') $('heard').innerHTML = '<span class="muted">…</span>'; });
+link.on('speech', ({ state }) => { if (state === 'start') { $('heard').innerHTML = '<span class="muted">…</span>'; $('said').hidden = true; } });
+link.on('say', ({ text, spoken }) => {
+  const s = $('said');
+  s.textContent = text;
+  s.className = `said ${spoken ? 'spoken' : 'quiet'}`;
+  s.hidden = false;
+});
 link.on('heard', ({ text, typed }) => { const h = $('heard'); h.textContent = text; h.classList.toggle('typed', !!typed); });
 link.on('act', ({ steps }) => {
   $('acts').replaceChildren(...steps.map((s) => {
@@ -102,10 +109,24 @@ function renderQuick(info) {
   }));
 }
 
+// ---- noises or words
+function showVoiceMode(mode) {
+  for (const b of $('voiceMode').children) b.classList.toggle('on', b.dataset.mode === mode);
+}
+$('voiceMode').onclick = (e) => {
+  const mode = e.target.closest('button')?.dataset.mode;
+  if (!mode) return;
+  synth.unlock();
+  showVoiceMode(mode);
+  link.send({ type: 'voice.mode', mode });
+};
+link.on('voice.mode', ({ mode }) => showVoiceMode(mode));
+
 // ---- toggles
 $('sound').onclick = () => {
   synth.unlock();
   synth.enabled = !synth.enabled;
+  if (!synth.enabled) voice.stop();
   $('sound').textContent = synth.enabled ? '🔊' : '🔈';
 };
 $('toggle3d').onclick = () => {

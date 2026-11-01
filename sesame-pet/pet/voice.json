@@ -1,0 +1,9 @@
+{
+  "_help": "How Sesame sounds. mode: \"noises\" = pet sounds, and its line is only shown as a caption; \"words\" = it speaks its line out loud (pet sounds muted). Switch it from the phone or the Lab; tune the rest in Lab -> Voice. Everything is saved here. voice: a gpt-realtime voice (alloy, ash, ballad, cedar, coral, echo, marin, sage, shimmer, verse). style: how the line is acted. pitch: semitones higher (0-12; raises the whole voice like a smaller throat). pace: speed after the pitch shift (0.7-1.4, 1 = normal). wobble: warble depth in semitones (0-1.5).",
+  "mode": "words",
+  "voice": "marin",
+  "style": "a tiny, curious robot pet: bright, playful, quick, a little breathless, never like an assistant",
+  "pitch": 5,
+  "pace": 1.05,
+  "wobble": 0.3
+}

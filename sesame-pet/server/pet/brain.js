@@ -1,5 +1,6 @@
-// One live voice "call" with gpt-realtime through the proxy. The model never
-// talks: output is text-only and every reply must be an act() tool call.
+// One live voice "call" with gpt-realtime through the proxy. Every reply is an
+// act() tool call: a short line (`say`) plus behaviors. The conversation is
+// text-only; when the owner wants words, the Speaker voices the line.
 // Audio in: PCM16 mono 24 kHz from the phone. Typed text works too (Lab).
 import { EventEmitter } from 'node:events';
 import WebSocket from 'ws';
@@ -23,7 +24,8 @@ export class BrainSession extends EventEmitter {
       format: { type: 'audio/pcm', rate: 24000 },
       turn_detection: { type: 'server_vad', threshold: 0.55, prefix_padding_ms: 300, silence_duration_ms: 450, create_response: true, interrupt_response: true },
     };
-    if (this.transcription) input.transcription = { model: 'gpt-4o-mini-transcribe' };
+    // Captions only (the model hears the audio itself). The prompt keeps Hinglish in Latin letters.
+    if (this.transcription) input.transcription = { model: 'gpt-4o-mini-transcribe', prompt: 'Casual English or Hinglish (Hindi written in Latin letters), talking to a robot pet named Sesame.' };
     return {
       type: 'realtime',
       output_modalities: ['text'],
@@ -84,7 +86,8 @@ export class BrainSession extends EventEmitter {
         let args = {};
         try { args = JSON.parse(m.arguments); } catch { /* ignore */ }
         const steps = Array.isArray(args.steps) ? args.steps.filter((s) => s && typeof s.behavior === 'string') : [];
-        this.emit('act', { steps });
+        const say = typeof args.say === 'string' ? args.say.trim().slice(0, 200) : '';
+        this.emit('act', { steps, say });
         // Close the loop without asking for another response (the pet stays quiet).
         this.send({ type: 'conversation.item.create', item: { type: 'function_call_output', call_id: m.call_id, output: '{"ok":true}' } });
         break;

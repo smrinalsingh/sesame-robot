@@ -2,6 +2,7 @@
 // wiring used by both the phone page and the Lab.
 import { RobotViewer, decodeFace, drawOled } from './viewer.js';
 import { Synth } from './synth.js';
+import { VoicePlayer } from './voice.js';
 
 export class HubLink extends EventTarget {
   constructor(role) {
@@ -34,8 +35,10 @@ export class HubLink extends EventTarget {
   get open() { return this.ws.readyState === 1; }
 }
 
-// Wires a hub link to a 3D view, a 2D OLED canvas and the synth.
+// Wires a hub link to a 3D view, a 2D OLED canvas, the synth (pet noises) and
+// the voice player (spoken lines).
 export async function attachRobotView(link, { viewEl, oledCanvas, synth = new Synth() }) {
+  const voice = new VoicePlayer(synth);
   const faces = {};
   let viewer = null;
   let info = null;
@@ -63,8 +66,11 @@ export async function attachRobotView(link, { viewEl, oledCanvas, synth = new Sy
   });
   link.on('servo', ({ ch, angle }) => viewer?.setServo(ch, angle));
   link.on('face', ({ name, frame }) => showFace(name, frame));
-  link.on('sound', ({ name }) => synth.play(name));
+  link.on('sound', ({ name, muted }) => { if (!muted) synth.play(name); });
+  link.on('say.audio', ({ id, audio }) => voice.push(id, audio));
+  link.on('say.stop', () => voice.stop());
+  link.on('voice.mode', ({ mode }) => { if (info?.voice) info.voice.mode = mode; });
   link.on('firmware', async (m) => { if (m.ok) { info = m.info; await loadFaces(); synth.setRecipes(m.info.sounds); } });
   link.on('config', (m) => { info = m.info; synth.setRecipes(m.info.sounds); });
-  return { synth, get viewer() { return viewer; }, get info() { return info; }, get face() { return faceName; } };
+  return { synth, voice, get viewer() { return viewer; }, get info() { return info; }, get face() { return faceName; } };
 }

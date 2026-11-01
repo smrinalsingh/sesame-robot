@@ -71,6 +71,14 @@ button.primary { background: var(--accent); border-color: var(--accent); color: 
 .call-label { font-size: 13px; color: var(--muted); min-height: 18px; text-align: center; }
 .phone .quick { display: flex; gap: 8px; overflow-x: auto; padding: 8px 16px 16px; scrollbar-width: none; }
 .phone .quick button { border-radius: 999px; padding: 6px 12px; font-size: 13px; white-space: nowrap; }
+.phone .said { font-size: 17px; font-weight: 600; color: var(--accent); }
+.phone .said::before { content: '💬 '; }
+.phone .said.quiet { color: var(--text); font-weight: 400; font-style: italic; opacity: 0.8; }
+.phone .said.quiet::before { content: '🐾 '; font-style: normal; }
+.phone .said[hidden] { display: none; }
+.seg { display: inline-flex; padding: 3px; gap: 2px; border-radius: 999px; background: var(--surface); border: 1px solid var(--line); }
+.seg button { border: none; background: transparent; border-radius: 999px; padding: 5px 12px; font-size: 13px; color: var(--muted); white-space: nowrap; }
+.seg button.on { background: var(--accent-soft); color: var(--text); box-shadow: inset 0 0 0 1px var(--accent); }
 .banner { margin: 0 12px 8px; padding: 8px 12px; border-radius: 10px; font-size: 13px; background: rgba(255, 181, 71, 0.12); border: 1px solid rgba(255, 181, 71, 0.4); }
 .banner[hidden] { display: none; }
 
@@ -92,8 +100,8 @@ input, textarea, select {
 }
 textarea { font-family: var(--mono); font-size: 12.5px; line-height: 1.45; resize: vertical; width: 100%; }
 .panel { border-left: 1px solid var(--line); background: var(--surface); display: flex; flex-direction: column; min-height: 0; }
-.tabs { display: flex; gap: 2px; padding: 8px 8px 0; border-bottom: 1px solid var(--line); overflow-x: auto; }
-.tabs button { background: none; border: none; border-bottom: 2px solid transparent; border-radius: 0; padding: 8px 10px; color: var(--muted); }
+.tabs { display: flex; gap: 0; padding: 8px 4px 0; border-bottom: 1px solid var(--line); overflow-x: auto; }
+.tabs button { flex: 1 1 auto; background: none; border: none; border-bottom: 2px solid transparent; border-radius: 0; padding: 8px 6px; white-space: nowrap; color: var(--muted); }
 .tabs button.on { color: var(--text); border-bottom-color: var(--accent); }
 .tab { display: none; padding: 12px; overflow: auto; min-height: 0; flex: 1; }
 .tab.on { display: block; }
@@ -116,6 +124,9 @@ textarea { font-family: var(--mono); font-size: 12.5px; line-height: 1.45; resiz
 .sound-row .tag { font-size: 11px; color: var(--muted); }
 .row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
 .servo { display: grid; grid-template-columns: 34px 1fr 40px; gap: 10px; align-items: center; margin-bottom: 6px; font-family: var(--mono); font-size: 13px; }
+.knob { display: grid; grid-template-columns: 60px 1fr 64px; gap: 10px; align-items: center; margin-bottom: 6px; font-size: 13px; }
+.knob input[type=range] { accent-color: var(--accent); width: 100%; padding: 0; }
+.knob output { font-family: var(--mono); text-align: right; }
 .servo input[type=range] { accent-color: var(--accent); width: 100%; padding: 0; }
 .log { font-family: var(--mono); font-size: 12px; line-height: 1.5; white-space: pre-wrap; word-break: break-word; }
 .log .e { color: var(--danger); }

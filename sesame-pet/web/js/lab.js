@@ -7,7 +7,7 @@ const el = (tag, props = {}, ...kids) => { const e = Object.assign(document.crea
 
 const link = new HubLink('lab');
 const view = await attachRobotView(link, { viewEl: $('view'), oledCanvas: $('oled') });
-const { synth } = view;
+const { synth, voice } = view;
 window.sesame = view; // handy from the browser console
 let info = null;
 let selectedSound = null;
@@ -51,6 +51,7 @@ function showFwError(err) {
 
 function render(i) {
   info = i;
+  showVoiceMode(i.voice?.mode);
   $('mode').textContent = i.mode === 'sim' ? 'simulator' : `robot ${i.robotUrl}`;
   if (i.firmwareError) showFwError(i.firmwareError);
   else { $('fwStatus').innerHTML = `<span class="dot on"></span> firmware loaded ${new Date().toLocaleTimeString()}`; $('fwNotice').replaceChildren(); }
@@ -58,6 +59,7 @@ function render(i) {
   renderBehaviors(i);
   renderFaces();
   renderSounds(i);
+  renderVoice(i);
   renderServos(i);
 }
 
@@ -156,8 +158,57 @@ $('wav').onclick = async () => {
   const a = el('a', { href: URL.createObjectURL(await recipeToWav(r)), download: `${selectedSound}.wav` });
   a.click();
 };
-$('soundOn').onchange = (e) => { synth.unlock(); synth.enabled = e.target.checked; };
-link.on('sound', ({ name }) => log('s', `♪ ${name}`));
+$('soundOn').onchange = (e) => { synth.unlock(); synth.enabled = e.target.checked; if (!synth.enabled) voice.stop(); };
+link.on('sound', ({ name, muted }) => log('s', `♪ ${name}${muted ? ' (muted: words mode)' : ''}`));
+
+// ---- noises or words
+function showVoiceMode(mode) {
+  for (const b of $('voiceMode').children) b.classList.toggle('on', b.dataset.mode === mode);
+}
+$('voiceMode').onclick = (e) => {
+  const mode = e.target.closest('button')?.dataset.mode;
+  if (!mode) return;
+  synth.unlock();
+  showVoiceMode(mode);
+  link.send({ type: 'voice.mode', mode });
+};
+link.on('voice.mode', ({ mode }) => { showVoiceMode(mode); log('a', `Sesame now answers with ${mode}`); });
+link.on('say', ({ text, spoken }) => log('h', `Sesame ${spoken ? 'says' : '(noises)'}: "${text}"`));
+
+// ---- voice tuner (words mode)
+const knobs = {
+  pitch: ['vPitch', (v) => `+${Number(v)} st`],
+  pace: ['vPace', (v) => `${Number(v).toFixed(2)}×`],
+  wobble: ['vWobble', (v) => `${Number(v).toFixed(2)} st`],
+};
+function renderVoice(i) {
+  const { voice: v, voiceOptions: o } = i;
+  if (!v || !o) return;
+  if (!$('vVoice').options.length) $('vVoice').replaceChildren(...o.voices.map((n) => el('option', { value: n, textContent: n })));
+  for (const [k, [id, fmt]] of Object.entries(knobs)) {
+    const input = $(id);
+    [input.min, input.max] = o.ranges[k];
+    if (document.activeElement !== input) input.value = v[k];
+    input.nextElementSibling.textContent = fmt(input.value);
+  }
+  if (document.activeElement !== $('vVoice')) $('vVoice').value = v.voice;
+  if (document.activeElement !== $('vStyle')) $('vStyle').value = v.style;
+}
+const tryLine = () => { synth.unlock(); link.send({ type: 'voice.try', text: $('tryLine').value }); };
+function setVoice(patch) {
+  synth.unlock();
+  link.send({ type: 'voice.set', voice: patch });
+  if ($('tryOnChange').checked) tryLine();
+}
+for (const [k, [id, fmt]] of Object.entries(knobs)) {
+  const input = $(id);
+  input.oninput = () => { input.nextElementSibling.textContent = fmt(input.value); };
+  input.onchange = () => setVoice({ [k]: Number(input.value) });
+}
+$('vVoice').onchange = () => setVoice({ voice: $('vVoice').value });
+$('vStyle').onchange = () => setVoice({ style: $('vStyle').value });
+$('tryForm').onsubmit = (e) => { e.preventDefault(); tryLine(); };
+link.on('voice.settings', ({ voice }) => { if (info) { info.voice = voice; renderVoice(info); } });
 
 // ---- servos
 function renderServos(i) {

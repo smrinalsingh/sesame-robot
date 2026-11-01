@@ -18,6 +18,9 @@
       <span class="status" id="fwStatus"></span>
       <span class="status" id="callStatus"></span>
       <span class="spacer"></span>
+      <div class="seg" id="voiceMode" role="group" aria-label="How Sesame answers">
+        <button data-mode="noises" title="Pet noises; its words show as a caption">🐾 Noises</button><button data-mode="words" title="Sesame speaks its words">💬 Words</button>
+      </div>
       <label class="status"><input type="checkbox" id="soundOn" checked> sounds here</label>
     </header>
     <section class="stage">
@@ -39,6 +42,7 @@
         <button data-tab="behaviors">Behaviors</button>
         <button data-tab="faces">Faces</button>
         <button data-tab="sounds">Sounds</button>
+        <button data-tab="voice">Voice</button>
         <button data-tab="servos">Servos</button>
         <button data-tab="log">Log</button>
       </nav>
@@ -71,6 +75,21 @@
           <button id="wav">Download WAV</button>
           <span class="muted" id="recipeMsg" style="font-size:13px"></span>
         </div>
+      </div>
+      <div class="tab" id="tab-voice">
+        <p class="muted" style="margin:0 0 8px;font-size:13px">How Sesame sounds in <b>Words</b> mode. The realtime voice talks slower, then the hub raises its pitch, which also shrinks its "throat": a critter, not a person. Saved to <code>pet/voice.json</code>.</p>
+        <h3>Try it</h3>
+        <form class="row" id="tryForm"><input id="tryLine" value="Ooh, you're back! Yay, yay!" style="flex:1;min-width:0" autocomplete="off"><button class="primary">▶ Try</button></form>
+        <label class="row" style="margin-top:8px;font-size:13px"><input type="checkbox" id="tryOnChange" checked> play it after each change</label>
+        <h3>Creature voice</h3>
+        <div class="knob"><span>Pitch</span><input type="range" id="vPitch" step="0.5"><output></output></div>
+        <div class="knob"><span>Pace</span><input type="range" id="vPace" step="0.05"><output></output></div>
+        <div class="knob"><span>Wobble</span><input type="range" id="vWobble" step="0.05"><output></output></div>
+        <p class="muted" style="margin:4px 0 0;font-size:12px">Pitch 0 and wobble 0 = the plain human voice, for comparison.</p>
+        <h3>Base voice</h3>
+        <div class="row"><select id="vVoice"></select><span class="muted" style="font-size:12px">changing it reconnects (~1 s)</span></div>
+        <h3>Acting</h3>
+        <textarea id="vStyle" rows="3" spellcheck="false"></textarea>
       </div>
       <div class="tab" id="tab-servos">
         <p class="muted" style="margin:0 0 8px;font-size:13px">Drive single servos (same as the robot's <code>/cmd?motor=</code>). Useful for checking 90° centering before fitting horns.</p>

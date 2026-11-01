@@ -1,6 +1,6 @@
 # sesame-pet
 
-A pet personality for the [Sesame robot](https://github.com/dorianborian/sesame-robot): you talk to it from your phone, and it answers with moves, faces and creature noises (chirps, trills, purrs, hisses) — never words. A browser simulator runs the **same firmware code** you flash, so everything can be built and tuned before the hardware exists.
+A pet personality for the [Sesame robot](https://github.com/dorianborian/sesame-robot): you talk to it from your phone, and it answers with moves, faces and a short line of its own — either as creature noises (chirps, trills, purrs, hisses) with the line as a caption, or spoken out loud. You pick with the **Noises / Words** switch. A browser simulator runs the **same firmware code** you flash, so everything can be built and tuned before the hardware exists.
 
 ```
 phone (mic, speaker) ──wss──► hub (laptop / bolthub-server) ──► gpt-realtime (via CLIProxyAPI)
@@ -45,11 +45,23 @@ npm test
 | `sesame-robot/firmware/face-bitmaps.h` | Faces in the simulator and the Lab |
 | `pet/behaviors.json` | What the AI can do (applies mid-call) |
 | `pet/sounds.json` | The creature sounds (Lab → Sounds to tweak; Download WAV for a future robot speaker) |
+| `pet/voice.json` | Noises or words (the switch saves here), which voice, and how it acts its lines |
 | `pet/personality.md` | How the AI decides |
 
 How: `server/firmware/` transpiles the firmware's C (moves + the `loop()` command table) to JavaScript and runs it against a stand-in for the hardware. Only the hardware helpers are reimplemented, mirroring the `.ino`: `setServoAngle`, `setFace*`, `delayWithFace`, `pressingCheck`, idle blink, face animation and the HTTP API. If the firmware stops parsing, the simulator says where (`file:line`) and keeps the last good version.
 
 Write new moves in `movement-sequences.h` using the same helpers as the existing ones, and add a line to the dispatch in `loop()`.
+
+## Noises or words
+
+Every reaction from the AI is one `act` call with `say` (a short line, always there) and the behaviors. The switch only changes how you hear it:
+
+- **Noises:** pet sounds play; the line is shown as a caption.
+- **Words:** the line is spoken word for word while the robot moves; pet sounds are muted.
+
+The voice is a gpt-realtime voice turned into a critter's: realtime has no pitch control, so it is asked to talk slower (its `speed` setting) and the hub then resamples it higher (`server/pet/voicefx.js`). That raises pitch and "throat size" together and brings the pace back, plus a slight warble. Tune pitch, pace, wobble, base voice and acting in **Lab → Voice** (with a Try button); it saves to `pet/voice.json`. The voice has its own realtime connection (`server/pet/speaker.js`), separate from the call.
+
+The phone mutes its mic while Sesame is making a sound or talking, so it doesn't hear itself. Speech arrives at the hub as 24 kHz audio and is sent on to the pages; a speaker on the robot can later take the same stream.
 
 ## Firmware changes vs upstream
 

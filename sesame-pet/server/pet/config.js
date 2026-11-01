@@ -2,8 +2,30 @@
 // firmware actually offers. Firmware moves without a behavior get one
 // automatically, and references to moves/faces/sounds that don't exist are
 // reported as warnings instead of failing at the robot.
-import { readFileSync, writeFileSync } from 'node:fs';
+import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
+
+export const VOICE_MODES = ['noises', 'words'];
+export const VOICES = ['alloy', 'ash', 'ballad', 'cedar', 'coral', 'echo', 'marin', 'sage', 'shimmer', 'verse'];
+const VOICE_DEFAULTS = { mode: 'noises', voice: 'marin', style: 'a tiny, curious robot pet: bright and playful', pitch: 5, pace: 1.05, wobble: 0.3 };
+// Knobs for the creature voice (see server/pet/voicefx.js): [min, max].
+export const VOICE_RANGES = { pitch: [0, 12], pace: [0.7, 1.4], wobble: [0, 1.5] };
+
+function cleanVoice(v, warnings = []) {
+  const out = { ...VOICE_DEFAULTS, ...v };
+  if (!VOICE_MODES.includes(out.mode)) { warnings.push(`voice.json: mode "${out.mode}" should be one of ${VOICE_MODES.join(', ')}`); out.mode = VOICE_DEFAULTS.mode; }
+  if (!VOICES.includes(out.voice)) { warnings.push(`voice.json: unknown voice "${out.voice}", using ${VOICE_DEFAULTS.voice}`); out.voice = VOICE_DEFAULTS.voice; }
+  for (const [k, [lo, hi]] of Object.entries(VOICE_RANGES)) {
+    const n = Number(out[k]);
+    if (!Number.isFinite(n)) { warnings.push(`voice.json: ${k} should be a number`); out[k] = VOICE_DEFAULTS[k]; } else out[k] = Math.min(hi, Math.max(lo, n));
+  }
+  return { mode: out.mode, voice: out.voice, style: String(out.style ?? ''), pitch: out.pitch, pace: out.pace, wobble: out.wobble };
+}
+
+function loadVoice(dir, warnings) {
+  const file = join(dir, 'voice.json');
+  return cleanVoice(existsSync(file) ? JSON.parse(readFileSync(file, 'utf8')) : {}, warnings);
+}
 
 export function loadPetConfig(dir, fw) {
   const behaviorsFile = JSON.parse(readFileSync(join(dir, 'behaviors.json'), 'utf8'));
@@ -27,8 +49,22 @@ export function loadPetConfig(dir, fw) {
     behaviors[c.name] = { when: `perform the "${c.name}" move`, command: c.name, continuous: c.continuous, auto: true };
   }
   for (const s of fw.sounds) if (!sounds[s]) warnings.push(`firmware plays "${s}" but sounds.json has no such sound`);
+  const voice = loadVoice(dir, warnings);
 
-  return { behaviors, sounds, personality, warnings };
+  return { behaviors, sounds, personality, voice, warnings };
+}
+
+// Saves voice settings (the noises/words switch, the Lab's voice tuner) into
+// pet/voice.json, keeping the rest of the file. Returns the cleaned settings.
+export function saveVoice(dir, patch) {
+  if (patch.mode !== undefined && !VOICE_MODES.includes(patch.mode)) throw new Error(`voice mode must be one of ${VOICE_MODES.join(', ')}`);
+  const file = join(dir, 'voice.json');
+  const current = existsSync(file) ? JSON.parse(readFileSync(file, 'utf8')) : {};
+  const keys = ['mode', 'voice', 'style', ...Object.keys(VOICE_RANGES)];
+  const cleaned = cleanVoice({ ...current, ...Object.fromEntries(keys.filter((k) => patch[k] !== undefined).map((k) => [k, patch[k]])) });
+  for (const k of keys) current[k] = cleaned[k];
+  writeFileSync(file, JSON.stringify(current, null, 2) + '\n');
+  return cleaned;
 }
 
 export function saveSounds(dir, sounds) {
@@ -45,10 +81,14 @@ export function actTool(cfg) {
   return {
     type: 'function',
     name: 'act',
-    description: `Make the pet react. Behaviors:\n${menu}`,
+    description: `Make the pet react: what it says and what it does. Behaviors:\n${menu}`,
     parameters: {
       type: 'object',
       properties: {
+        say: {
+          type: 'string',
+          description: "Sesame's own short line for this moment (2-10 words, the owner's language). Depending on the owner's setting it is spoken aloud or shown as a caption under pet noises. Empty only with ignore.",
+        },
         steps: {
           type: 'array',
           minItems: 1,
@@ -63,7 +103,7 @@ export function actTool(cfg) {
           },
         },
       },
-      required: ['steps'],
+      required: ['say', 'steps'],
     },
   };
 }

@@ -79,13 +79,13 @@ emu.on('serial', (text) => hub.broadcast({ type: 'serial', text }));
 emu.on('fault', (e) => { hub.log('error', `firmware fault in "${e.command}": ${e.message}`); say('fault', e.command, e.message); });
 emu.on('run', (e) => hub.broadcast({ type: 'run', command: e.command }));
 emu.on('idle', (e) => hub.broadcast({ type: 'done', command: e.command }));
-if (mode === 'sim') emu.on('sound', (e) => hub.broadcast({ type: 'sound', name: e.name }));
+if (mode === 'sim') emu.on('sound', (e) => hub.sound(e.name));
 executor.on('act', (e) => hub.broadcast({ type: 'act', ...e }));
 executor.on('step', (e) => hub.broadcast({ type: 'step', ...e }));
 
 // ---- sounds announced by the real robot (firmware playSound -> UDP)
 const udp = createSocket('udp4');
-udp.on('message', (msg) => hub.broadcast({ type: 'sound', name: msg.toString().trim() }));
+udp.on('message', (msg) => hub.sound(msg.toString().trim()));
 udp.on('error', (e) => say(`UDP ${SOUND_UDP_PORT}: ${e.message}`));
 udp.bind(SOUND_UDP_PORT);
 
