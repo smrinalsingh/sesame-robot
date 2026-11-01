@@ -1,4 +1,5 @@
 #include <WiFi.h>
+#include <WiFiUdp.h>
 #include <WebServer.h>
 #include <DNSServer.h>
 #include <ESPmDNS.h>
@@ -49,6 +50,15 @@ WebServer server(80);
 
 // Global state for animations
 String currentCommand = "";
+
+// --- Sound events (sesame-pet) ---
+// playSound("name") announces a sound cue over UDP to whoever last used the
+// JSON API (the pet hub), which plays it on the phone in sync with the move.
+// A speaker on the robot can hook into playSound() later.
+WiFiUDP soundUdp;
+IPAddress soundListenerIP;
+bool soundListenerSet = false;
+const uint16_t SOUND_EVENT_PORT = 4210;
 String currentFaceName = "default";
 const unsigned char* const* currentFaceFrames = nullptr;
 uint8_t currentFaceFrameCount = 0;
@@ -210,6 +220,9 @@ void handleGetStatus();
 void handleApiCommand();
 void updateWifiInfoScroll();
 void recordInput();
+void playSound(const String& name);
+void rememberSoundListener();
+String jsonStringField(const String& body, const char* key);
 bool connectToWifi(const String& ssid, const String& pass, uint32_t timeoutMs = 10000);
 void handleWifiScan();
 void handleWifiConnect();
@@ -287,6 +300,7 @@ void handleSetSettings() {
 
 // API endpoint for network clients to get robot status
 void handleGetStatus() {
+  rememberSoundListener();
   String json = "{";
   json += "\"currentCommand\":\"" + currentCommand + "\",";
   json += "\"currentFace\":\"" + currentFaceName + "\",";
@@ -307,6 +321,8 @@ void handleApiCommand() {
   }
   
   String body = server.arg("plain");
+  rememberSoundListener();
+  String sound = jsonStringField(body, "sound");
   
   Serial.println("API Command received:");
   Serial.println(body);
@@ -334,6 +350,14 @@ void handleApiCommand() {
     }
   }
   
+  // Sound-only request (sesame-pet): {"sound":"chirp"}
+  if (!faceOnly && face.length() == 0 && sound.length() > 0 && body.indexOf("\"command\"") == -1) {
+    playSound(sound);
+    recordInput();
+    server.send(200, "application/json", "{\"status\":\"ok\",\"message\":\"Sound played\"}");
+    return;
+  }
+
   // Parse command (if not face-only)
   if (!faceOnly) {
     int cmdStart = body.indexOf("\"command\":\"");
@@ -365,6 +389,7 @@ void handleApiCommand() {
   if (face.length() > 0) {
     setFace(face);
   }
+  if (sound.length() > 0) playSound(sound);
   
   // If face-only, just acknowledge
   if (faceOnly) {
@@ -1048,6 +1073,34 @@ void updateIdleBlink() {
 }
 
 // ====== HELPERS ======
+void playSound(const String& name) {
+  Serial.print(F("SOUND "));
+  Serial.println(name);
+  if (!soundListenerSet) return;
+  soundUdp.beginPacket(soundListenerIP, SOUND_EVENT_PORT);
+  soundUdp.print(name);
+  soundUdp.endPacket();
+}
+
+void rememberSoundListener() {
+  soundListenerIP = server.client().remoteIP();
+  soundListenerSet = true;
+}
+
+// Value of a "key":"value" string field in a small JSON body ("" if absent).
+String jsonStringField(const String& body, const char* key) {
+  String pat = String("\"") + key + "\"";
+  int k = body.indexOf(pat);
+  if (k < 0) return "";
+  int colon = body.indexOf(':', k + pat.length());
+  if (colon < 0) return "";
+  int q1 = body.indexOf('"', colon + 1);
+  if (q1 < 0) return "";
+  int q2 = body.indexOf('"', q1 + 1);
+  if (q2 < 0) return "";
+  return body.substring(q1 + 1, q2);
+}
+
 void setServoAngle(uint8_t channel, int angle) { 
   if (channel < 8) {
     int adjustedAngle = constrain(angle + servoSubtrim[channel], 0, 180);

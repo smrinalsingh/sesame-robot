@@ -45,6 +45,7 @@ extern void setFaceWithMode(const String& faceName, FaceAnimMode mode);
 extern void delayWithFace(unsigned long ms);
 extern void enterIdle();
 extern bool pressingCheck(String cmd, int ms);
+extern void playSound(const String& name);
 
 // Pose/animation prototypes
 void runRestPose();
@@ -71,6 +72,7 @@ void runTurnRight();
 inline void runRestPose() { 
   Serial.println(F("REST")); 
   setFaceWithMode("rest", FACE_ANIM_BOOMERANG); 
+  playSound("yawn");
   for (int i = 0; i < 8; i++) setServoAngle(i, 90); 
 }
 
@@ -91,6 +93,7 @@ inline void runStandPose(int face) {
 inline void runWavePose() { 
   Serial.println(F("WAVE")); 
   setFaceWithMode("wave", FACE_ANIM_ONCE); 
+  playSound("trill");
   runStandPose(0); 
   delayWithFace(200);
   setServoAngle(R4, 80); setServoAngle(L3, 180); 
@@ -99,6 +102,7 @@ inline void runWavePose() {
   setServoAngle(L3, 180); 
   delayWithFace(300); 
   for (int i = 0; i < 4; i++) { 
+    playSound("chirp");
     setServoAngle(L3, 180); delayWithFace(300); 
     setServoAngle(L3, 100); delayWithFace(300); 
   } 
@@ -109,12 +113,14 @@ inline void runWavePose() {
 inline void runDancePose() { 
   Serial.println(F("DANCE")); 
   setFaceWithMode("dance", FACE_ANIM_LOOP); 
+  playSound("wheee");
   setServoAngle(R1, 90); setServoAngle(R2, 90); 
   setServoAngle(L1, 90); setServoAngle(L2, 90); 
   setServoAngle(R4, 160); setServoAngle(R3, 160); 
   setServoAngle(L3, 10); setServoAngle(L4, 10); 
   delayWithFace(300); 
   for (int i = 0; i < 5; i++) { 
+    playSound("chitter");
     setServoAngle(R4, 115); setServoAngle(R3, 115); 
     setServoAngle(L3, 10); setServoAngle(L4, 10); 
     delayWithFace(300); 
@@ -129,6 +135,7 @@ inline void runDancePose() {
 inline void runSwimPose() { 
   Serial.println(F("SWIM")); 
   setFaceWithMode("swim", FACE_ANIM_ONCE); 
+  playSound("wheee");
   for (int i = 0; i < 8; i++) setServoAngle(i, 90); 
   for (int i = 0; i < 4; i++) { 
     setServoAngle(R1, 135); setServoAngle(R2, 45); 
@@ -145,6 +152,7 @@ inline void runSwimPose() {
 inline void runPointPose() { 
   Serial.println(F("POINT")); 
   setFaceWithMode("point", FACE_ANIM_BOOMERANG); 
+  playSound("chirp");
   setServoAngle(L2, 90); setServoAngle(R1, 135); 
   setServoAngle(R2, 100); setServoAngle(L4, 180); 
   setServoAngle(L1, 25); setServoAngle(L3, 145);
@@ -165,6 +173,7 @@ inline void runPushupPose() {
   setServoAngle(R3, 90);
   delayWithFace(500);
   for (int i = 0; i < 4; i++) {
+    playSound("hup");
     setServoAngle(L3, 0);
     setServoAngle(R3, 180);
     delayWithFace(600);
@@ -179,6 +188,7 @@ inline void runPushupPose() {
 inline void runBowPose() {
   Serial.println(F("BOW"));
   setFaceWithMode("bow", FACE_ANIM_ONCE);
+  playSound("boop");
   runStandPose(0); 
   delayWithFace(200);
   setServoAngle(L1, 0);
@@ -200,6 +210,7 @@ inline void runBowPose() {
 inline void runCutePose() {
   Serial.println(F("CUTE"));
   setFaceWithMode("cute", FACE_ANIM_ONCE);
+  playSound("purr");
   runStandPose(0); 
   delayWithFace(200);
   setServoAngle(L2, 160);
@@ -227,6 +238,7 @@ inline void runCutePose() {
 inline void runFreakyPose() {
   Serial.println(F("FREAKY"));
   setFaceWithMode("freaky", FACE_ANIM_ONCE);
+  playSound("hiss");
   runStandPose(0); 
   delayWithFace(200);
   setServoAngle(L1, 0);
@@ -237,6 +249,7 @@ inline void runFreakyPose() {
   setServoAngle(R3, 0);
   delayWithFace(200);
   for (int i = 0; i < 3; i++) {
+    playSound("click");
     setServoAngle(R3, 25);
     delayWithFace(400);
     setServoAngle(R3, 0);
@@ -249,6 +262,7 @@ inline void runFreakyPose() {
 inline void runWormPose() {
   Serial.println(F("WORM"));
   setFaceWithMode("worm", FACE_ANIM_ONCE);
+  playSound("squeak");
   runStandPose(0);
   delayWithFace(200);
   setServoAngle(R1, 180); setServoAngle(R2, 0); setServoAngle(L1, 0); setServoAngle(L2, 180);
@@ -267,6 +281,7 @@ inline void runWormPose() {
 inline void runShakePose() {
   Serial.println(F("SHAKE"));
   setFaceWithMode("shake", FACE_ANIM_ONCE);
+  playSound("chitter");
   runStandPose(0);
   delayWithFace(200);
   setServoAngle(R1, 135); setServoAngle(L1, 45); setServoAngle(L3, 90); setServoAngle(R3, 90);
@@ -290,6 +305,7 @@ inline void runShrugPose() {
   setServoAngle(R3, 90); setServoAngle(R4, 90); setServoAngle(L3, 90); setServoAngle(L4, 90);
   delayWithFace(1000);
   setFaceWithMode("shrug", FACE_ANIM_ONCE);
+  playSound("huh");
   setServoAngle(R3, 0); setServoAngle(R4, 180); setServoAngle(L3, 180); setServoAngle(L4, 0);
   delayWithFace(1500);
   runStandPose(1);
@@ -300,6 +316,7 @@ inline void runDeadPose() {
   Serial.println(F("DEAD"));
   runStandPose(0);
   setFaceWithMode("dead", FACE_ANIM_BOOMERANG);
+  playSound("whimper");
   delayWithFace(200);
   setServoAngle(R3, 90); setServoAngle(R4, 90); setServoAngle(L3, 90); setServoAngle(L4, 90);
   if (currentCommand == "dead") currentCommand = "";
@@ -308,6 +325,7 @@ inline void runDeadPose() {
 inline void runCrabPose() {
   Serial.println(F("CRAB"));
   setFaceWithMode("crab", FACE_ANIM_ONCE);
+  playSound("chitter");
   runStandPose(0);
   delayWithFace(200);
   setServoAngle(R1, 90); setServoAngle(R2, 90); setServoAngle(L1, 90); setServoAngle(L2, 90);
@@ -333,6 +351,7 @@ inline void runWalkPose() {
   
   for (int i = 0; i < walkCycles; i++) {
     setServoAngle(R3, 135); setServoAngle(L3, 0);
+    playSound("tick");
     if (!pressingCheck("forward", frameDelay)) return;
     setServoAngle(L4, 135); setServoAngle(L2, 90);
     setServoAngle(R4, 0); setServoAngle(R1, 180);
@@ -340,6 +359,7 @@ inline void runWalkPose() {
     setServoAngle(R2, 45); setServoAngle(L1, 90);
     if (!pressingCheck("forward", frameDelay)) return;
     setServoAngle(R4, 45); setServoAngle(L4, 180);
+    playSound("tick");
     if (!pressingCheck("forward", frameDelay)) return;
     setServoAngle(R3, 180); setServoAngle(L3, 45);
     setServoAngle(R2, 90); setServoAngle(L1, 0);
@@ -358,6 +378,7 @@ inline void runWalkBackward() {
   
   for (int i = 0; i < walkCycles; i++) {
     setServoAngle(R3, 135); setServoAngle(L3, 0);
+    playSound("tick");
     if (!pressingCheck("backward", frameDelay)) return;
     setServoAngle(L4, 135); setServoAngle(L2, 135);
     setServoAngle(R4, 0); setServoAngle(R1, 90);
@@ -365,6 +386,7 @@ inline void runWalkBackward() {
     setServoAngle(R2, 90); setServoAngle(L1, 0);
     if (!pressingCheck("backward", frameDelay)) return;
     setServoAngle(R4, 45); setServoAngle(L4, 180);
+    playSound("tick");
     if (!pressingCheck("backward", frameDelay)) return;
     setServoAngle(R3, 180); setServoAngle(L3, 45);
     setServoAngle(R2, 45); setServoAngle(L1, 90);
